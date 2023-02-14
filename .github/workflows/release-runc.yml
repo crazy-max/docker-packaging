@@ -1,0 +1,32 @@
+name: release-runc
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref (e.g. v1.1.4)'
+        required: true
+        type: string
+      repo:
+        description: 'Override default repo'
+        required: false
+        type: string
+      release:
+        description: 'Push image and create release'
+        required: false
+        type: boolean
+
+jobs:
+  release:
+    uses: ./.github/workflows/.release.yml
+    with:
+      name: runc
+      release: ${{ inputs.release }}
+      env: |
+        RUNC_REPO=${{ inputs.repo }}
+        RUNC_REF=${{ inputs.ref }}
+    secrets: inherit
