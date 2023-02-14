@@ -170,7 +170,7 @@ FROM --platform=$BUILDPLATFORM ${PKG_BASE_IMAGE} AS builder-static
 COPY --from=xx / /
 ARG DEBIAN_FRONTEND
 RUN apt-get update && apt-get install -y --no-install-recommends bash ca-certificates file git zip tar \
-  dpkg-dev git make pkg-config
+  dpkg-dev clang lld llvm make pkg-config
 ENV GOPROXY="https://proxy.golang.org|direct"
 ENV GOPATH="/go"
 ENV PATH="$PATH:/usr/local/go/bin:$GOPATH/bin"
@@ -181,7 +181,14 @@ ARG RUNC_REF
 ARG NIGHTLY_BUILD
 WORKDIR /build
 ARG TARGETPLATFORM
-RUN xx-apt-get install -y gcc libseccomp-dev
+RUN xx-apt-get install -y gcc libc6-dev libseccomp-dev
+RUN <<EOT
+  set -e
+  # in bullseye arm64 target does not link with lld so configure it to use ld instead
+  if [ "$(xx-info arch)" = "arm64" ]; then
+    XX_CC_PREFER_LINKER=ld xx-clang --setup-target-triple
+  fi
+EOT
 RUN --mount=type=bind,source=scripts/pkg-static-build.sh,target=/usr/local/bin/pkg-static-build \
     --mount=type=bind,from=common-scripts,source=gen-ver.sh,target=/usr/local/bin/gen-ver \
     --mount=type=bind,from=common-scripts,source=fix-cc.sh,target=/usr/local/bin/fix-cc \

@@ -43,10 +43,10 @@ done
 xx-go --wrap
 fix-cc
 
-# FIXME: should be built using clang but needs https://github.com/opencontainers/runc/pull/3465
-export CC=$(xx-info)-gcc
-
 mkdir -p ${BUILDDIR}/${PKG_NAME}
+
+# FIXME: remove once https://github.com/opencontainers/runc/pull/3746 merged
+sed -i -e 's#--static-pie#-static-pie#g' "${SRCDIR}/Makefile"
 
 (
   set -x
