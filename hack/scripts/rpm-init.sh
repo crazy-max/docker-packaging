@@ -34,6 +34,13 @@ EOF
   chmod +x /usr/local/bin/git
 }
 
+if [[ "$pkgrelease" = rockylinux* ]]; then
+  # disable mirrors and use vault repos for better stability
+  find /etc/yum.repos.d/ -name '*.repo' -exec sed -i \
+    -e 's/^mirrorlist=.*$/#mirrorlist=disabled/' \
+    -e "s|^#baseurl=.*$|baseurl=https://dl.rockylinux.org/vault/rocky/$(rpm -E %{rhel})/BaseOS/\$basearch/os/|" {} \;
+fi
+
 case "$pkgrelease" in
   centos9)
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
